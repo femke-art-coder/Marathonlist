@@ -83,6 +83,25 @@
             flex: 1 1 150px;
         }
 
+        /* km-Bereichsfilter */
+        .km-range {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex: 1 1 220px;
+        }
+
+        .km-range label {
+            font-size: 13px;
+            color: #888;
+            white-space: nowrap;
+        }
+
+        .km-range input {
+            flex: 1;
+            min-width: 60px;
+        }
+
         .sort-bar {
             background: #fff;
             border-radius: 10px;
@@ -200,7 +219,6 @@
 
 <body>
     <div class="wrap">
-
         <header>
             <div>
                 <h1>🏃 Marathon-Katalog</h1>
@@ -216,7 +234,15 @@
                 <option>Halbmarathon</option>
                 <option>Marathon</option>
                 <option>Ultra</option>
+                <option>Weitere</option>
             </select>
+            <!-- km-Bereichsfilter -->
+            <div class="km-range">
+                <label>km:</label>
+                <input type="number" id="km-min" placeholder="Min" min="1" step="1">
+                <label>–</label>
+                <input type="number" id="km-max" placeholder="Max" min="1" step="1">
+            </div>
             <select id="f-level">
                 <option value="">Alle Level</option>
                 <option>Anfänger</option>
@@ -245,6 +271,7 @@
             <button class="sort-btn" data-key="name">🔤 Name</button>
             <button class="sort-btn" data-key="hm">⛰ Höhenmeter</button>
             <button class="sort-btn" data-key="kosten_frueh">💶 Kosten</button>
+            <button class="sort-btn" data-key="km_min">📏 Kürzeste km</button>
         </div>
 
         <div class="count" id="count"></div>
@@ -255,10 +282,8 @@
     </div>
 
     <script>
-        // ── HIER DEINEN SUPABASE KEY EINTRAGEN ──────────────────────
-        const SUPABASE_URL = 'https://zznkbvcwhgqxgrakqewp.supabase.co/';
+        const SUPABASE_URL = 'https://zznkbvcwhgqxgrakqewp.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_eiF7sdMyOQvUpJtsIvifqA_ztcxqHP2';
-        // ────────────────────────────────────────────────────────────
 
         let allData = [];
         let sortKey = 'datum';
@@ -277,33 +302,66 @@
             }
         }
 
+        // Alle km-Werte eines Eintrags als flaches Array zurückgeben
+        // distanzen_km ist z.B. { "Marathon": 42.195, "Halbmarathon": 21.1 }
+        function allKm(entry) {
+            const map = entry.distanzen_km;
+            if (!map || typeof map !== 'object') return [];
+            return Object.values(map).map(Number).filter(n => !isNaN(n));
+        }
+
         function render() {
             const search = document.getElementById('search').value.toLowerCase();
             const fDist = document.getElementById('f-distanz').value;
+            const kmMin = parseFloat(document.getElementById('km-min').value);
+            const kmMax = parseFloat(document.getElementById('km-max').value);
             const fLevel = document.getElementById('f-level').value;
             const fUnt = document.getElementById('f-untergrund').value;
             const fDlv = document.getElementById('f-dlv').value;
 
             let data = allData.filter(e => {
+                // Volltextsuche
                 if (search && !`${e.name} ${e.ort} ${e.plz}`.toLowerCase().includes(search)) return false;
+                // Distanz-Kategorie
                 if (fDist && !(e.distanzen || []).includes(fDist)) return false;
+                // km-Bereich: mind. eine Distanz des Eintrags muss im Bereich liegen
+                if (!isNaN(kmMin) || !isNaN(kmMax)) {
+                    const kms = allKm(e);
+                    if (!kms.length) return false; // kein km-Wert hinterlegt → herausfiltern
+                    const inRange = kms.some(k =>
+                        (isNaN(kmMin) || k >= kmMin) &&
+                        (isNaN(kmMax) || k <= kmMax)
+                    );
+                    if (!inRange) return false;
+                }
                 if (fLevel && e.level !== fLevel) return false;
                 if (fUnt && e.untergrund !== fUnt) return false;
                 if (fDlv === 'true' && !e.dlv) return false;
                 return true;
             });
 
+            // Sortierung
             data.sort((a, b) => {
-                let av = a[sortKey] ?? '', bv = b[sortKey] ?? '';
-                if (['hm', 'kosten_frueh', 'plz', 'teilnehmerlimit'].includes(sortKey)) {
-                    av = parseFloat(av) || 0; bv = parseFloat(bv) || 0;
+                let av, bv;
+                if (sortKey === 'km_min') {
+                    // nach kürzester angebotener Distanz sortieren
+                    av = Math.min(...(allKm(a).length ? allKm(a) : [Infinity]));
+                    bv = Math.min(...(allKm(b).length ? allKm(b) : [Infinity]));
+                } else {
+                    av = a[sortKey] ?? '';
+                    bv = b[sortKey] ?? '';
+                    if (['hm', 'kosten_frueh', 'plz', 'teilnehmerlimit'].includes(sortKey)) {
+                        av = parseFloat(av) || 0;
+                        bv = parseFloat(bv) || 0;
+                    }
                 }
                 if (av < bv) return sortDir === 'asc' ? -1 : 1;
                 if (av > bv) return sortDir === 'asc' ? 1 : -1;
                 return 0;
             });
 
-            document.getElementById('count').textContent = `${data.length} Veranstaltung${data.length !== 1 ? 'en' : ''} gefunden`;
+            document.getElementById('count').textContent =
+                `${data.length} Veranstaltung${data.length !== 1 ? 'en' : ''} gefunden`;
 
             if (!data.length) {
                 document.getElementById('list').innerHTML = '<div class="empty"><span>🏃</span>Keine Läufe gefunden.</div>';
@@ -311,9 +369,20 @@
             }
 
             document.getElementById('list').innerHTML = data.map(e => {
-                const datum = e.datum ? new Date(e.datum).toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' }) : '';
+                const datum = e.datum
+                    ? new Date(e.datum).toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })
+                    : '';
+
+                // km-Tags pro Distanz aufbauen
+                const kmMap = (e.distanzen_km && typeof e.distanzen_km === 'object') ? e.distanzen_km : {};
+                const distTags = (e.distanzen || []).map(d => {
+                    const km = kmMap[d];
+                    const label = km != null ? `${d} (${km} km)` : d;
+                    return tag(label, '#e85d04');
+                }).join('');
+
                 const tags = [
-                    ...(e.distanzen || []).map(d => tag(d, '#e85d04')),
+                    distTags,
                     e.level ? tag(e.level, '#2196f3') : '',
                     e.untergrund ? tag(e.untergrund, '#4caf50') : '',
                     e.hm ? tag(`⛰ ${e.hm} Hm`, '#9c27b0') : '',
@@ -329,19 +398,19 @@
                 ].filter(Boolean).join('&ensp;·&ensp;');
 
                 return `
-        <div class="card">
-          <div class="card-head">
-            <div>
-              <div class="card-name">${esc(e.name)}</div>
-              <div class="card-meta">
-                ${e.plz || e.ort ? `📍 ${[e.plz, e.ort].filter(Boolean).join(' ')} &nbsp;` : ''}
-                ${datum ? `📅 ${datum}` : ''}
+            <div class="card">
+              <div class="card-head">
+                <div>
+                  <div class="card-name">${esc(e.name)}</div>
+                  <div class="card-meta">
+                    ${e.plz || e.ort ? `📍 ${[e.plz, e.ort].filter(Boolean).join(' ')} &nbsp;` : ''}
+                    ${datum ? `📅 ${datum}` : ''}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-          ${tags ? `<div class="tags">${tags}</div>` : ''}
-          ${extra ? `<div class="card-extra">${extra}</div>` : ''}
-        </div>`;
+              ${tags ? `<div class="tags">${tags}</div>` : ''}
+              ${extra ? `<div class="card-extra">${extra}</div>` : ''}
+            </div>`;
             }).join('');
         }
 
@@ -351,15 +420,15 @@
         function esc(s) { return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
         // Events
-        ['search', 'f-distanz', 'f-level', 'f-untergrund', 'f-dlv'].forEach(id => {
+        ['search', 'f-distanz', 'km-min', 'km-max', 'f-level', 'f-untergrund', 'f-dlv'].forEach(id => {
             document.getElementById(id).addEventListener('input', render);
         });
 
         document.querySelectorAll('.sort-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const k = btn.dataset.key;
-                if (sortKey === k) { sortDir = sortDir === 'asc' ? 'desc' : 'asc'; }
-                else { sortKey = k; sortDir = 'asc'; }
+                sortDir = (sortKey === k && sortDir === 'asc') ? 'desc' : 'asc';
+                sortKey = k;
                 document.querySelectorAll('.sort-btn').forEach(b => b.classList.toggle('active', b === btn));
                 render();
             });
