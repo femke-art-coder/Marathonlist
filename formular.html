@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lauf eintragen – Marathon-Katalog</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, sans-serif;
+            background: #f8f9fa;
+            color: #222;
+            padding: 20px;
+        }
+
+        .wrap {
+            max-width: 680px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: linear-gradient(135deg, #e85d04, #f48c06);
+            color: #fff;
+            border-radius: 14px;
+            padding: 20px 24px;
+            margin-bottom: 24px;
+        }
+
+        header h1 {
+            font-size: 22px;
+            font-weight: 800;
+        }
+
+        header p {
+            font-size: 13px;
+            opacity: .85;
+            margin-top: 4px;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 8px #0001;
+        }
+
+        .card h2 {
+            font-size: 14px;
+            font-weight: 700;
+            color: #888;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+            margin-bottom: 14px;
+        }
+
+        .row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .field {
+            flex: 1 1 200px;
+            margin-bottom: 12px;
+        }
+
+        .field label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #444;
+            margin-bottom: 4px;
+        }
+
+        .field input,
+        .field select,
+        .field textarea {
+            width: 100%;
+            padding: 9px 11px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            background: #fff;
+        }
+
+        .field textarea {
+            resize: vertical;
+        }
+
+        .checkgroup {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+
+        .checkgroup label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 7px 12px;
+            font-size: 14px;
+            transition: border-color .15s, background .15s;
+        }
+
+        .checkgroup input[type=checkbox] {
+            accent-color: #e85d04;
+            width: 16px;
+            height: 16px;
+        }
+
+        .checkgroup label:has(input:checked) {
+            border-color: #e85d04;
+            background: #fff5ee;
+        }
+
+        .toggle-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .toggle-label input {
+            accent-color: #e85d04;
+            width: 18px;
+            height: 18px;
+        }
+
+        .hint {
+            font-size: 12px;
+            color: #999;
+            margin-top: 3px;
+        }
+
+        button[type=submit] {
+            width: 100%;
+            padding: 14px;
+            background: #e85d04;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: opacity .15s;
+        }
+
+        button[type=submit]:hover {
+            opacity: .9;
+        }
+
+        #msg {
+            text-align: center;
+            padding: 14px;
+            border-radius: 10px;
+            margin-top: 14px;
+            font-weight: 600;
+            display: none;
+        }
+
+        #msg.ok {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        #msg.err {
+            background: #fdecea;
+            color: #c62828;
+        }
+
+        .disclaimer {
+            font-size: 12px;
+            color: #aaa;
+            text-align: center;
+            margin-top: 16px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+        <header>
+            <h1>🏃 Lauf eintragen</h1>
+            <p>Trag deinen Lauf ein – je mehr Infos, desto besser für alle!</p>
+        </header>
+
+        <form id="form" novalidate>
+
+            <div class="card">
+                <h2>📌 BASIS-FAKTEN</h2>
+                <div class="field">
+                    <label>Name des Laufs *</label>
+                    <input name="name" placeholder="z.B. Berliner Marathon" required>
+                </div>
+                <div class="row">
+                    <div class="field">
+                        <label>Datum</label>
+                        <input name="datum" type="date">
+                    </div>
+                    <div class="field">
+                        <label>PLZ</label>
+                        <input name="plz" placeholder="10115" maxlength="5">
+                    </div>
+                    <div class="field">
+                        <label>Ort</label>
+                        <input name="ort" placeholder="Berlin">
+                    </div>
+                </div>
+                <div class="field">
+                    <label>Distanzen</label>
+                    <div class="checkgroup">
+                        <label><input type="checkbox" name="distanzen" value="Halbmarathon"> Halbmarathon</label>
+                        <label><input type="checkbox" name="distanzen" value="Marathon"> Marathon</label>
+                        <label><input type="checkbox" name="distanzen" value="Ultra"> Ultra</label>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="field">
+                        <label>Level</label>
+                        <select name="level">
+                            <option value="">– wählen –</option>
+                            <option>Anfänger</option>
+                            <option>Fortgeschrittene</option>
+                            <option>Alle</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>Startgebühr Frühbucher (€)</label>
+                        <input name="kosten_frueh" type="number" placeholder="59">
+                    </div>
+                    <div class="field">
+                        <label>Startgebühr Spät (€)</label>
+                        <input name="kosten_spaet" type="number" placeholder="89">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🗺️ DIE STRECKE</h2>
+                <div class="row">
+                    <div class="field">
+                        <label>Höhenmeter</label>
+                        <input name="hm" type="number" placeholder="250">
+                    </div>
+                    <div class="field">
+                        <label>Untergrund</label>
+                        <select name="untergrund">
+                            <option value="">– wählen –</option>
+                            <option>Asphalt</option>
+                            <option>Forstwege</option>
+                            <option>Schotter</option>
+                            <option>Technischer Trail</option>
+                            <option>Gemischt</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="field">
+                    <label class="toggle-label">
+                        <input type="checkbox" name="dlv">
+                        <span><strong>DLV-vermessen</strong> – offizielle Strecke für Bestenlisten</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🚌 LOGISTIK & LIMITS</h2>
+                <div class="row">
+                    <div class="field">
+                        <label>Zeitlimit</label>
+                        <input name="zeitlimit" placeholder="z.B. 6:00 Std.">
+                    </div>
+                    <div class="field">
+                        <label>Teilnehmerlimit</label>
+                        <input name="teilnehmerlimit" type="number" placeholder="500">
+                    </div>
+                    <div class="field">
+                        <label>Anmeldeschluss</label>
+                        <input name="anmeldeschluss" type="date">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>⭐ DAS EXTRA</h2>
+                <div class="field">
+                    <label>Verpflegung</label>
+                    <input name="verpflegung" placeholder="Wasser, Iso, Gel, Obst an km 10/20/30 …">
+                </div>
+                <div class="field">
+                    <label>Besonderheiten</label>
+                    <textarea name="besonderheiten" rows="2"
+                        placeholder="Finisher-Shirt, Medaille, Live-Musik, Pasta-Party …"></textarea>
+                </div>
+                <div class="field">
+                    <label>Vibe</label>
+                    <input name="vibe" placeholder="Stille im Wald / Party-Meile / Familiär …">
+                </div>
+            </div>
+
+            <button type="submit">✅ Lauf eintragen</button>
+            <div id="msg"></div>
+            <p class="disclaimer">⚠️ Alle Angaben sind freiwillig und werden nicht geprüft.<br>Dieses Projekt ist ein
+                Community-Katalog ohne Gewähr.</p>
+        </form>
+    </div>
+
+    <script>
+        // ── HIER DEINEN SUPABASE KEY EINTRAGEN ──────────────────────
+        const SUPABASE_URL = 'https://zznkbvcwhgqxgrakqewp.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_eiF7sdMyOQvUpJtsIvifqA_ztcxqHP2';
+        // ────────────────────────────────────────────────────────────
+
+        document.getElementById('form').addEventListener('submit', async e => {
+            e.preventDefault();
+            const fd = new FormData(e.target);
+            const msg = document.getElementById('msg');
+
+            const name = fd.get('name')?.trim();
+            if (!name) { showMsg('Bitte mindestens den Namen eintragen.', false); return; }
+
+            const distanzen = [...document.querySelectorAll('input[name=distanzen]:checked')].map(el => el.value);
+
+            const payload = {
+                name,
+                datum: fd.get('datum') || null,
+                plz: fd.get('plz') || null,
+                ort: fd.get('ort') || null,
+                distanzen: distanzen.length ? distanzen : null,
+                level: fd.get('level') || null,
+                kosten_frueh: num(fd.get('kosten_frueh')),
+                kosten_spaet: num(fd.get('kosten_spaet')),
+                hm: num(fd.get('hm')),
+                untergrund: fd.get('untergrund') || null,
+                dlv: fd.get('dlv') === 'on',
+                zeitlimit: fd.get('zeitlimit') || null,
+                teilnehmerlimit: num(fd.get('teilnehmerlimit')),
+                anmeldeschluss: fd.get('anmeldeschluss') || null,
+                verpflegung: fd.get('verpflegung') || null,
+                besonderheiten: fd.get('besonderheiten') || null,
+                vibe: fd.get('vibe') || null,
+            };
+
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/marathons`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                if (!res.ok) throw new Error(await res.text());
+                showMsg('🎉 Danke! Der Lauf wurde eingetragen.', true);
+                e.target.reset();
+            } catch (err) {
+                showMsg('Fehler beim Speichern: ' + err.message, false);
+            }
+        });
+
+        function num(v) { const n = parseFloat(v); return isNaN(n) ? null : n; }
+        function showMsg(text, ok) {
+            const el = document.getElementById('msg');
+            el.textContent = text;
+            el.className = ok ? 'ok' : 'err';
+            el.style.display = 'block';
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    </script>
+</body>
+
+</html>

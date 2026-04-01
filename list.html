@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marathon-Katalog – Alle Läufe</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, sans-serif;
+            background: #f8f9fa;
+            color: #222;
+            padding: 20px;
+        }
+
+        .wrap {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: linear-gradient(135deg, #e85d04, #f48c06);
+            color: #fff;
+            border-radius: 14px;
+            padding: 20px 24px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        header h1 {
+            font-size: 22px;
+            font-weight: 800;
+        }
+
+        header p {
+            font-size: 13px;
+            opacity: .85;
+            margin-top: 2px;
+        }
+
+        .add-btn {
+            background: #fff;
+            color: #e85d04;
+            border: none;
+            border-radius: 10px;
+            padding: 9px 16px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .filters {
+            background: #fff;
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 6px #0001;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .filters input,
+        .filters select {
+            padding: 9px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            flex: 1 1 150px;
+        }
+
+        .sort-bar {
+            background: #fff;
+            border-radius: 10px;
+            padding: 8px 14px;
+            margin-bottom: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            align-items: center;
+            font-size: 13px;
+            color: #888;
+        }
+
+        .sort-bar span {
+            margin-right: 6px;
+        }
+
+        .sort-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            color: #555;
+        }
+
+        .sort-btn.active {
+            color: #e85d04;
+            font-weight: 700;
+            background: #fff5ee;
+        }
+
+        .count {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 10px;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 6px #0001;
+            border-left: 4px solid #e85d04;
+        }
+
+        .card-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .card-name {
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .card-meta {
+            color: #888;
+            font-size: 13px;
+            margin-top: 2px;
+        }
+
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .tag {
+            border-radius: 20px;
+            padding: 3px 10px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .card-extra {
+            font-size: 13px;
+            color: #555;
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: #aaa;
+        }
+
+        .empty span {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #aaa;
+        }
+
+        .disclaimer {
+            font-size: 12px;
+            color: #bbb;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+
+        <header>
+            <div>
+                <h1>🏃 Marathon-Katalog</h1>
+                <p id="subtitle">Lade Veranstaltungen …</p>
+            </div>
+            <a class="add-btn" href="formular.html">➕ Lauf eintragen</a>
+        </header>
+
+        <div class="filters">
+            <input id="search" placeholder="🔍 Name, Ort oder PLZ …">
+            <select id="f-distanz">
+                <option value="">Alle Distanzen</option>
+                <option>Halbmarathon</option>
+                <option>Marathon</option>
+                <option>Ultra</option>
+            </select>
+            <select id="f-level">
+                <option value="">Alle Level</option>
+                <option>Anfänger</option>
+                <option>Fortgeschrittene</option>
+                <option>Alle</option>
+            </select>
+            <select id="f-untergrund">
+                <option value="">Alle Untergründe</option>
+                <option>Asphalt</option>
+                <option>Forstwege</option>
+                <option>Schotter</option>
+                <option>Technischer Trail</option>
+                <option>Gemischt</option>
+            </select>
+            <select id="f-dlv">
+                <option value="">DLV egal</option>
+                <option value="true">Nur DLV-vermessen</option>
+            </select>
+        </div>
+
+        <div class="sort-bar">
+            <span>Sortieren:</span>
+            <button class="sort-btn active" data-key="datum">📅 Datum</button>
+            <button class="sort-btn" data-key="plz">📮 PLZ</button>
+            <button class="sort-btn" data-key="ort">📍 Ort</button>
+            <button class="sort-btn" data-key="name">🔤 Name</button>
+            <button class="sort-btn" data-key="hm">⛰ Höhenmeter</button>
+            <button class="sort-btn" data-key="kosten_frueh">💶 Kosten</button>
+        </div>
+
+        <div class="count" id="count"></div>
+        <div id="list">
+            <div class="loading">⏳ Lade Daten …</div>
+        </div>
+        <p class="disclaimer">⚠️ Community-Katalog – Angaben ohne Gewähr, nicht redaktionell geprüft.</p>
+    </div>
+
+    <script>
+        // ── HIER DEINEN SUPABASE KEY EINTRAGEN ──────────────────────
+        const SUPABASE_URL = 'https://zznkbvcwhgqxgrakqewp.supabase.co/';
+        const SUPABASE_KEY = 'sb_publishable_eiF7sdMyOQvUpJtsIvifqA_ztcxqHP2';
+        // ────────────────────────────────────────────────────────────
+
+        let allData = [];
+        let sortKey = 'datum';
+        let sortDir = 'asc';
+
+        async function load() {
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/marathons?select=*&order=datum.asc`, {
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                });
+                allData = await res.json();
+                document.getElementById('subtitle').textContent = `${allData.length} Veranstaltungen im Katalog`;
+                render();
+            } catch (e) {
+                document.getElementById('list').innerHTML = '<div class="empty"><span>⚠️</span>Fehler beim Laden der Daten.</div>';
+            }
+        }
+
+        function render() {
+            const search = document.getElementById('search').value.toLowerCase();
+            const fDist = document.getElementById('f-distanz').value;
+            const fLevel = document.getElementById('f-level').value;
+            const fUnt = document.getElementById('f-untergrund').value;
+            const fDlv = document.getElementById('f-dlv').value;
+
+            let data = allData.filter(e => {
+                if (search && !`${e.name} ${e.ort} ${e.plz}`.toLowerCase().includes(search)) return false;
+                if (fDist && !(e.distanzen || []).includes(fDist)) return false;
+                if (fLevel && e.level !== fLevel) return false;
+                if (fUnt && e.untergrund !== fUnt) return false;
+                if (fDlv === 'true' && !e.dlv) return false;
+                return true;
+            });
+
+            data.sort((a, b) => {
+                let av = a[sortKey] ?? '', bv = b[sortKey] ?? '';
+                if (['hm', 'kosten_frueh', 'plz', 'teilnehmerlimit'].includes(sortKey)) {
+                    av = parseFloat(av) || 0; bv = parseFloat(bv) || 0;
+                }
+                if (av < bv) return sortDir === 'asc' ? -1 : 1;
+                if (av > bv) return sortDir === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            document.getElementById('count').textContent = `${data.length} Veranstaltung${data.length !== 1 ? 'en' : ''} gefunden`;
+
+            if (!data.length) {
+                document.getElementById('list').innerHTML = '<div class="empty"><span>🏃</span>Keine Läufe gefunden.</div>';
+                return;
+            }
+
+            document.getElementById('list').innerHTML = data.map(e => {
+                const datum = e.datum ? new Date(e.datum).toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' }) : '';
+                const tags = [
+                    ...(e.distanzen || []).map(d => tag(d, '#e85d04')),
+                    e.level ? tag(e.level, '#2196f3') : '',
+                    e.untergrund ? tag(e.untergrund, '#4caf50') : '',
+                    e.hm ? tag(`⛰ ${e.hm} Hm`, '#9c27b0') : '',
+                    e.dlv ? tag('DLV ✓', '#ff9800') : '',
+                    e.kosten_frueh ? tag(`ab ${e.kosten_frueh}€`, '#607d8b') : '',
+                    e.zeitlimit ? tag(`⏱ ${e.zeitlimit}`, '#795548') : '',
+                ].filter(Boolean).join('');
+
+                const extra = [
+                    e.vibe ? `✨ ${e.vibe}` : '',
+                    e.besonderheiten ? `🏅 ${e.besonderheiten}` : '',
+                    e.verpflegung ? `🍌 ${e.verpflegung}` : '',
+                ].filter(Boolean).join('&ensp;·&ensp;');
+
+                return `
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-name">${esc(e.name)}</div>
+              <div class="card-meta">
+                ${e.plz || e.ort ? `📍 ${[e.plz, e.ort].filter(Boolean).join(' ')} &nbsp;` : ''}
+                ${datum ? `📅 ${datum}` : ''}
+              </div>
+            </div>
+          </div>
+          ${tags ? `<div class="tags">${tags}</div>` : ''}
+          ${extra ? `<div class="card-extra">${extra}</div>` : ''}
+        </div>`;
+            }).join('');
+        }
+
+        function tag(text, color) {
+            return `<span class="tag" style="background:${color}18;color:${color};border:1px solid ${color}44">${text}</span>`;
+        }
+        function esc(s) { return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+        // Events
+        ['search', 'f-distanz', 'f-level', 'f-untergrund', 'f-dlv'].forEach(id => {
+            document.getElementById(id).addEventListener('input', render);
+        });
+
+        document.querySelectorAll('.sort-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const k = btn.dataset.key;
+                if (sortKey === k) { sortDir = sortDir === 'asc' ? 'desc' : 'asc'; }
+                else { sortKey = k; sortDir = 'asc'; }
+                document.querySelectorAll('.sort-btn').forEach(b => b.classList.toggle('active', b === btn));
+                render();
+            });
+        });
+
+        load();
+    </script>
+</body>
+
+</html>
