@@ -16,3 +16,5 @@ Dieses Projekt entstand im Rahmen meines autodidaktischen Einstiegs in die Softw
 
 ## Reflexion
 Das Projekt diente primär dazu, das Zusammenspiel zwischen Frontend-Templates, KI-generierter Logik und Cloud-Datenbanken (BaaS) zu erproben.
+<img width="1080" height="2110" alt="Marathonlist" src="https://github.com/user-attachments/assets/cacb6251-1abc-4702-bbdf-6ccfdcf7c1c4" />
+<img width="1080" height="1974" alt="LaufFormular" src="https://github.com/user-attachments/assets/382821ca-ca2c-49a1-8126-e9a5af6f39c8" />
